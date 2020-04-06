@@ -1,0 +1,3 @@
+rootProject.name='SerialRetrofit'
+include ':app'
+include ':seriallibrary'
