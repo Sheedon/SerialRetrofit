@@ -40,6 +40,17 @@ public class RequestBuilder {
         serialMessage.setMessageBit(message.replace("{" + name + "}", value));
     }
 
+    /**
+     * 添加反馈信息路径参数
+     */
+    public void addBackPathParam(String name, String value, boolean encoded) {
+        if (bindCallback == null || bindCallback.getBackName() == null) {
+            throw new AssertionError();
+        }
+        String message = bindCallback.getBackName();
+        bindCallback.setBackName(message.replace("{" + name + "}", value));
+    }
+
     Request build() {
         if (serialMessage == null) {
             throw new IllegalArgumentException(

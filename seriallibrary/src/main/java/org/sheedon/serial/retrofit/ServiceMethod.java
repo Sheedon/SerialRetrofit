@@ -6,6 +6,7 @@ import org.sheedon.serial.Request;
 import org.sheedon.serial.Response;
 import org.sheedon.serial.ResponseBody;
 import org.sheedon.serial.retrofit.serialport.BACKNAME;
+import org.sheedon.serial.retrofit.serialport.BackPath;
 import org.sheedon.serial.retrofit.serialport.DELAYMILLISECOND;
 import org.sheedon.serial.retrofit.serialport.ENDBIT;
 import org.sheedon.serial.retrofit.serialport.MESSAGEBIT;
@@ -336,8 +337,12 @@ final class ServiceMethod<R, T> {
 
                 Converter<?, String> converter = retrofit.stringConverter(type, annotations);
                 return new ParameterHandler.Path<>(name, converter, path.encoded());
+            }else if(annotation instanceof BackPath){
+                BackPath path = (BackPath) annotation;
+                String name = path.value();
+                Converter<?, String> converter = retrofit.stringConverter(type, annotations);
+                return new ParameterHandler.Path<>(name, converter, path.encoded());
             }
-
             return null; // Not a Retrofit annotation.
         }
 

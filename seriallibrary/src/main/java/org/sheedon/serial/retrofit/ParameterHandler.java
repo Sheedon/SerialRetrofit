@@ -70,4 +70,28 @@ abstract class ParameterHandler<T> {
             builder.addPathParam(name, valueConverter.convert(value), encoded);
         }
     }
+
+    /**
+     * 反馈地址拼接到消息体内
+     */
+    static final class BackPath<T> extends ParameterHandler<T> {
+        private final String name;
+        private final Converter<T, String> valueConverter;
+        private final boolean encoded;
+
+        BackPath(String name, Converter<T, String> valueConverter, boolean encoded) {
+            this.name = checkNotNull(name, "name == null");
+            this.valueConverter = valueConverter;
+            this.encoded = encoded;
+        }
+
+        @Override
+        void apply(RequestBuilder builder, @Nullable T value) {
+            if (value == null) {
+                throw new IllegalArgumentException(
+                        "Path parameter \"" + name + "\" value must not be null.");
+            }
+            builder.addPathParam(name, valueConverter.convert(value), encoded);
+        }
+    }
 }
