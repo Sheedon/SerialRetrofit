@@ -12,6 +12,7 @@ import static org.sheedon.serial.retrofit.Utils.throwIfFatal;
 
 /**
  * 串口Call，用于触发串口调度
+ *
  * @Author: sheedon
  * @Email: sheedonsun@163.com
  * @Date: 2020/2/23 22:27
@@ -72,6 +73,90 @@ final class SerialCall<T> implements Call<T> {
     @Override
     public void publishNotCallback() {
         enqueue(null);
+    }
+
+    @Override
+    public void addBindCallback(final Callback<T> callback) {
+        org.sheedon.serial.Call call;
+        Throwable failure;
+
+        synchronized (this) {
+
+            call = rawCall;
+            failure = creationFailure;
+            if (call == null && failure == null) {
+                try {
+                    call = rawCall = createRawCall();
+                } catch (Throwable t) {
+                    failure = creationFailure = t;
+                }
+            }
+        }
+
+        if (failure != null) {
+            dealWithCallback(callback, SerialCall.this, null, failure, false);
+            return;
+        }
+
+        if (canceled) {
+            call.cancel();
+        }
+
+        if (callback == null)
+            return;
+
+        call.addBindCallback(new org.sheedon.serial.Callback<org.sheedon.serial.Response>() {
+            @Override
+            public void onFailure(Throwable e) {
+                try {
+                    dealWithCallback(callback, SerialCall.this, null, e, false);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onResponse(org.sheedon.serial.Response rawResponse) {
+                Response<T> response;
+                try {
+                    response = parseResponse(rawResponse);
+                } catch (Throwable e) {
+                    callFailure(e);
+                    return;
+                }
+                callSuccess(response);
+            }
+
+            private void callFailure(Throwable e) {
+                try {
+                    dealWithCallback(callback, SerialCall.this, null, e, false);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+
+            private void callSuccess(Response<T> response) {
+                try {
+                    dealWithCallback(callback, SerialCall.this, response, null, true);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void unBindCallback() {
+        org.sheedon.serial.Call call;
+
+        synchronized (this) {
+            call = rawCall;
+        }
+
+        if (call == null)
+            return;
+
+        call.removeBindCallback();
     }
 
     @Override
@@ -178,7 +263,7 @@ final class SerialCall<T> implements Call<T> {
         return call;
     }
 
-    Response<T> parseResponse(org.sheedon.serial.Response rawResponse) throws IOException {
+    Response<T> parseResponse(org.sheedon.serial.Response rawResponse) {
         ResponseBody rawBody = rawResponse.body();
 
         try {

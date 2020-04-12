@@ -32,6 +32,16 @@ public interface Call<T> extends Cloneable {
     void enqueue(Callback<T> responseCallback);
 
     /**
+     * 添加绑定额外
+     */
+    void addBindCallback(Callback<T> callback);
+
+    /**
+     * 移除绑定
+     */
+    void unBindCallback();
+
+    /**
      * Cancels the request, if possible. Requests that are already complete cannot be canceled.
      */
     void cancel();
