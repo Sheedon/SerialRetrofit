@@ -42,17 +42,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Call<BoxModel> managerList = remoteService.getManagerList("0800", "02", "03", "01");
-                managerList.enqueue(new Callback.Call<BoxModel>() {
-                    @Override
-                    public void onResponse(Call<BoxModel> call, Response<BoxModel> response) {
-                        Log.v("SXD",""+response.body());
-                    }
-
-                    @Override
-                    public void onFailure(Call<BoxModel> call, Throwable t) {
-                        Log.v("SXD",""+t);
-                    }
-                });
+                managerList.publishNotCallback();
 
             }
         });
