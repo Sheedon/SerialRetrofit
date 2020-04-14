@@ -1,13 +1,13 @@
 package org.sheedon.serial.retrofit;
 
 
-
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
 
 import static org.sheedon.serial.retrofit.Utils.checkNotNull;
+
 
 /**
  * 参数处理

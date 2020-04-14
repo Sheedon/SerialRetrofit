@@ -2,7 +2,9 @@ package org.sheedon.demo;
 
 
 import org.sheedon.serial.retrofit.Call;
+import org.sheedon.serial.retrofit.Observable;
 import org.sheedon.serial.retrofit.serialport.BACKNAME;
+import org.sheedon.serial.retrofit.serialport.ENDBIT;
 import org.sheedon.serial.retrofit.serialport.MESSAGEBIT;
 import org.sheedon.serial.retrofit.serialport.PARITYBIT;
 import org.sheedon.serial.retrofit.serialport.Path;
@@ -20,8 +22,12 @@ interface RemoteService {
     @STARTBIT("7A")
     @MESSAGEBIT("123456")
     @PARITYBIT("1111")
+    @ENDBIT("")
     @BACKNAME("get_manager_list")
     Call<String> getManagerList();
+
+    @BACKNAME("0101")
+    Observable<BoxModel> getManagerList1();
 
 
     @MESSAGEBIT("{length}{address}{type}{message}")

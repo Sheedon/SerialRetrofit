@@ -10,6 +10,7 @@ import org.sheedon.demo.converters.DataConverterFactory;
 import org.sheedon.serial.SerialClient;
 import org.sheedon.serial.retrofit.Call;
 import org.sheedon.serial.retrofit.Callback;
+import org.sheedon.serial.retrofit.Observable;
 import org.sheedon.serial.retrofit.Response;
 import org.sheedon.serial.retrofit.Retrofit;
 import org.sheedon.serial.retrofit.converters.SerialConverterFactory;
@@ -23,11 +24,12 @@ public class MainActivity extends AppCompatActivity {
 
         SerialClient client = new SerialClient.Builder()
                 .path("/tty/s4")
+                .baudRate(9600)
                 .name("qrcode")
                 .addConverterFactory(DataConverterFactory.create())
                 .build();
 
-        final Retrofit retrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
                 .addConverterFactory(SerialConverterFactory.create())
                 .baseStartBit("7A")
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Call<BoxModel> managerList = remoteService.getManagerList("0800", "02", "03", "01");
-                managerList.enqueue(new Callback<BoxModel>() {
+                managerList.enqueue(new Callback.Call<BoxModel>() {
                     @Override
                     public void onResponse(Call<BoxModel> call, Response<BoxModel> response) {
                         Log.v("SXD",""+response.body());
@@ -52,6 +54,24 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+            }
+        });
+
+        findViewById(R.id.btn1).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Observable<BoxModel> managerList = remoteService.getManagerList1();
+                managerList.subscribe(new Callback.Observable<BoxModel>() {
+                    @Override
+                    public void onResponse(Observable<BoxModel> call, Response<BoxModel> response) {
+                        Log.v("SXD", "" + response.body());
+                    }
+
+                    @Override
+                    public void onFailure(Observable<BoxModel> call, Throwable t) {
+                        Log.v("SXD", "" + t);
+                    }
+                });
             }
         });
     }

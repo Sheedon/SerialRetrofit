@@ -23,12 +23,18 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
 
     @Override
     public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
-        if (getRawType(returnType) != Call.class) {
+        final Class<?> rawType = getRawType(returnType);
+        if (rawType != Call.class && rawType != Observable.class) {
             return null;
         }
 
         final Type responseType = Utils.getCallResponseType(returnType);
-        return new CallAdapter<Object, Call<?>>() {
+        return new CallAdapter<Object, Object>() {
+            @Override
+            public Type rawType() {
+                return rawType;
+            }
+
             @Override
             public Type responseType() {
                 return responseType;
@@ -37,6 +43,11 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
             @Override
             public Call<Object> adapt(Call<Object> call) {
                 return new ExecutorCallbackCall<>(callbackExecutor, call);
+            }
+
+            @Override
+            public Observable<Object> adapt(Observable<Object> observable) {
+                return new ExecutorCallbackObservable<>(callbackExecutor, observable);
             }
         };
     }
@@ -82,12 +93,15 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
         }
 
         @Override
-        public void addBindCallback(final Callback<T> callback) {
-            if(callback == null){
+        public void enqueue(final Callback.Call callback) {
+//            checkNotNull(callback, "callback == null");
+
+            if (callback == null) {
+                delegate.publishNotCallback();
                 return;
             }
 
-            delegate.addBindCallback(new Callback<T>() {
+            delegate.enqueue(new Callback.Call<T>() {
                 @Override
                 public void onResponse(Call<T> call, final Response<T> response) {
                     callbackExecutor.execute(new Runnable() {
@@ -114,46 +128,76 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
                 }
             });
         }
+    }
 
-        @Override
-        public void unBindCallback() {
-            delegate.unBindCallback();
+    static final class ExecutorCallbackObservable<T> implements Observable<T> {
+        final Executor callbackExecutor;
+        final Observable<T> delegate;
+
+        ExecutorCallbackObservable(Executor callbackExecutor, Observable<T> delegate) {
+            this.callbackExecutor = callbackExecutor;
+            this.delegate = delegate;
         }
 
         @Override
-        public void enqueue(final Callback callback) {
-//            checkNotNull(callback, "callback == null");
+        public boolean isExecuted() {
+            return delegate.isExecuted();
+        }
 
+        @Override
+        public void cancel() {
+            delegate.cancel();
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return delegate.isCanceled();
+        }
+
+        @SuppressWarnings("CloneDoesntCallSuperClone") // Performing deep clone.
+        @Override
+        public Observable<T> clone() {
+            return new ExecutorCallbackObservable<>(callbackExecutor, delegate.clone());
+        }
+
+        @Override
+        public Request request() {
+            return delegate.request();
+        }
+
+        @Override
+        public void subscribe(final Callback.Observable<T> callback) {
             if (callback == null) {
-                delegate.publishNotCallback();
                 return;
             }
 
-            delegate.enqueue(new Callback<T>() {
+            delegate.subscribe(new Callback.Observable<T>() {
+
                 @Override
-                public void onResponse(Call<T> call, final Response<T> response) {
+                public void onResponse(Observable<T> call, final Response<T> response) {
                     callbackExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
                             if (delegate.isCanceled()) {
                                 // Emulate OkHttp's behavior of throwing/delivering an IOException on cancellation.
-                                callback.onFailure(ExecutorCallbackCall.this, new IOException("Canceled"));
+                                callback.onFailure(ExecutorCallbackObservable.this, new IOException("Canceled"));
                             } else {
-                                callback.onResponse(ExecutorCallbackCall.this, response);
+                                callback.onResponse(ExecutorCallbackObservable.this, response);
                             }
                         }
                     });
                 }
 
                 @Override
-                public void onFailure(Call<T> call, final Throwable t) {
+                public void onFailure(Observable<T> call, final Throwable t) {
                     callbackExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onFailure(ExecutorCallbackCall.this, t);
+                            callback.onFailure(ExecutorCallbackObservable.this, t);
                         }
                     });
                 }
+
             });
         }
     }

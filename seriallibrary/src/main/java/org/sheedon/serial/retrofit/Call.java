@@ -5,7 +5,7 @@ import org.sheedon.serial.Request;
 
 /**
  * 对Retrofit方法的调用，该方法将请求发送到串口并返回响应。
- * 每个调用都会产生自己的请求和响应对。使用{@link #clone}对相同的Web服务器进行具有相同参数的多个调用；
+ * 每个调用都会产生自己的请求和响应对。
  * 这可用于实现轮询或重试失败的呼叫。(暂未使用)
  * 调用可以与{@link #publishNotCallback}无反馈执行，
  * 也可以与{@link * #enqueue}异步有反馈执行。
@@ -29,17 +29,7 @@ public interface Call<T> extends Cloneable {
     /**
      * 异步反馈请求
      */
-    void enqueue(Callback<T> responseCallback);
-
-    /**
-     * 添加绑定额外
-     */
-    void addBindCallback(Callback<T> callback);
-
-    /**
-     * 移除绑定
-     */
-    void unBindCallback();
+    void enqueue(Callback.Call<T> callback);
 
     /**
      * Cancels the request, if possible. Requests that are already complete cannot be canceled.
@@ -48,7 +38,7 @@ public interface Call<T> extends Cloneable {
 
     /**
      * Returns true if this call has been either {@linkplain #publishNotCallback() executed} or {@linkplain
-     * #enqueue(Callback) enqueued}. It is an error to execute or enqueue a call more than once.
+     * #enqueue(Callback.Call) enqueued}. It is an error to execute or enqueue a call more than once.
      */
     boolean isExecuted();
 

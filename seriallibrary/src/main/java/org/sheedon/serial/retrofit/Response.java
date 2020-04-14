@@ -1,10 +1,12 @@
 package org.sheedon.serial.retrofit;
 
+
 import androidx.annotation.Nullable;
 
 import org.sheedon.serial.ResponseBody;
 
 import static org.sheedon.serial.retrofit.Utils.checkNotNull;
+
 
 /**
  * 串口解析反馈内容

@@ -1,5 +1,7 @@
 package org.sheedon.serial.retrofit;
 
+
+
 import androidx.annotation.GuardedBy;
 import androidx.annotation.Nullable;
 
@@ -9,6 +11,7 @@ import org.sheedon.serial.ResponseBody;
 import java.io.IOException;
 
 import static org.sheedon.serial.retrofit.Utils.throwIfFatal;
+
 
 /**
  * 串口Call，用于触发串口调度
@@ -76,91 +79,7 @@ final class SerialCall<T> implements Call<T> {
     }
 
     @Override
-    public void addBindCallback(final Callback<T> callback) {
-        org.sheedon.serial.Call call;
-        Throwable failure;
-
-        synchronized (this) {
-
-            call = rawCall;
-            failure = creationFailure;
-            if (call == null && failure == null) {
-                try {
-                    call = rawCall = createRawCall();
-                } catch (Throwable t) {
-                    failure = creationFailure = t;
-                }
-            }
-        }
-
-        if (failure != null) {
-            dealWithCallback(callback, SerialCall.this, null, failure, false);
-            return;
-        }
-
-        if (canceled) {
-            call.cancel();
-        }
-
-        if (callback == null)
-            return;
-
-        call.addBindCallback(new org.sheedon.serial.Callback<org.sheedon.serial.Response>() {
-            @Override
-            public void onFailure(Throwable e) {
-                try {
-                    dealWithCallback(callback, SerialCall.this, null, e, false);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onResponse(org.sheedon.serial.Response rawResponse) {
-                Response<T> response;
-                try {
-                    response = parseResponse(rawResponse);
-                } catch (Throwable e) {
-                    callFailure(e);
-                    return;
-                }
-                callSuccess(response);
-            }
-
-            private void callFailure(Throwable e) {
-                try {
-                    dealWithCallback(callback, SerialCall.this, null, e, false);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-
-            private void callSuccess(Response<T> response) {
-                try {
-                    dealWithCallback(callback, SerialCall.this, response, null, true);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-        });
-    }
-
-    @Override
-    public void unBindCallback() {
-        org.sheedon.serial.Call call;
-
-        synchronized (this) {
-            call = rawCall;
-        }
-
-        if (call == null)
-            return;
-
-        call.removeBindCallback();
-    }
-
-    @Override
-    public void enqueue(final Callback callback) {
+    public void enqueue(final Callback.Call callback) {
 
         org.sheedon.serial.Call call;
         Throwable failure;
@@ -241,7 +160,7 @@ final class SerialCall<T> implements Call<T> {
      * @param t         错误
      * @param isSuccess 是否成功
      */
-    private void dealWithCallback(Callback callback, Call<T> call, Response<T> response, Throwable t, boolean isSuccess) {
+    private void dealWithCallback(Callback.Call callback, Call<T> call, Response<T> response, Throwable t, boolean isSuccess) {
 
         if (callback == null)
             return;
@@ -256,7 +175,7 @@ final class SerialCall<T> implements Call<T> {
 
     private org.sheedon.serial.Call createRawCall() throws IOException {
         Request request = serviceMethod.toRequest(args);
-        org.sheedon.serial.Call call = serviceMethod.callFactory.newCall(request);
+        org.sheedon.serial.Call call = serviceMethod.serialFactory.newCall(request);
         if (call == null) {
             throw new NullPointerException("Call.MqttFactory returned null.");
         }

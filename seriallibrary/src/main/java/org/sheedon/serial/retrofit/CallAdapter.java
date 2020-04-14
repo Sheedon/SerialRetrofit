@@ -15,10 +15,14 @@ import java.lang.reflect.Type;
  */
 public interface CallAdapter<R, T> {
 
+    Type rawType();
+
     Type responseType();
 
 
     T adapt(Call<R> call);
+
+    T adapt(Observable<R> observable);
 
 
     abstract class Factory {

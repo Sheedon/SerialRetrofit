@@ -1,5 +1,6 @@
 package org.sheedon.serial.retrofit;
 
+
 import androidx.annotation.Nullable;
 
 import org.sheedon.serial.ResponseBody;
@@ -30,7 +31,7 @@ public class Retrofit {
 
     private final Map<Method, ServiceMethod<?, ?>> serviceMethodCache = new ConcurrentHashMap<>();
 
-    final org.sheedon.serial.Call.Factory callFactory;
+    final org.sheedon.serial.SerialFactory serialFactory;
     final String baseStartBit;
     final String baseEndBit;
     final List<Converter.Factory> converterFactories;
@@ -39,12 +40,12 @@ public class Retrofit {
     Executor callbackExecutor;
     final boolean validateEagerly;
 
-    Retrofit(org.sheedon.serial.Call.Factory callFactory,
+    Retrofit(org.sheedon.serial.SerialFactory serialFactory,
              String baseStartBit, String baseEndBit,
              List<Converter.Factory> converterFactories,
              List<CallAdapter.Factory> adapterFactories,
              @Nullable Executor callbackExecutor, boolean validateEagerly) {
-        this.callFactory = callFactory;
+        this.serialFactory = serialFactory;
         this.baseStartBit = baseStartBit;
         this.baseEndBit = baseEndBit;
         this.converterFactories = unmodifiableList(converterFactories);
@@ -73,15 +74,14 @@ public class Retrofit {
 
                         ServiceMethod<Object, Object> serviceMethod =
                                 (ServiceMethod<Object, Object>) loadServiceMethod(method);
-                        SerialCall<Object> serialCall = new SerialCall<>(serviceMethod, args);
-                        return serviceMethod.adapt(serialCall);
+                        return adapt(serviceMethod, args);
                     }
                 });
 
     }
 
-    public org.sheedon.serial.Call.Factory callFactory() {
-        return callFactory;
+    public org.sheedon.serial.SerialFactory serialFactory() {
+        return serialFactory;
     }
 
     private void eagerlyValidateMethods(Class<?> service) {
@@ -111,6 +111,15 @@ public class Retrofit {
             }
         }
         return result;
+    }
+
+    private <T> T adapt(ServiceMethod<Object, Object> serviceMethod, @Nullable Object[] args){
+        if (serviceMethod.callAdapter.rawType() == Call.class) {
+            return (T) serviceMethod.adapt(new SerialCall<>(serviceMethod, args));
+        }else if(serviceMethod.callAdapter.rawType() == Observable.class){
+            return (T) serviceMethod.adapt(new SerialObservable<>(serviceMethod, args));
+        }
+        return null;
     }
 
     /**
@@ -330,7 +339,7 @@ public class Retrofit {
     public static final class Builder {
         private final Platform platform;
         private @Nullable
-        org.sheedon.serial.Call.Factory callFactory;
+        org.sheedon.serial.SerialFactory serialFactory;
         private final List<Converter.Factory> converterFactories = new ArrayList<>();
         private final List<CallAdapter.Factory> callAdapterFactories = new ArrayList<>();
         private @Nullable
@@ -352,7 +361,7 @@ public class Retrofit {
 
         Builder(Retrofit retrofit) {
             platform = Platform.get();
-            callFactory = retrofit.callFactory;
+            serialFactory = retrofit.serialFactory;
             baseStartBit = retrofit.baseStartBit;
             baseEndBit = retrofit.baseEndBit;
 
@@ -371,10 +380,10 @@ public class Retrofit {
         /**
          * The Serial client used for requests.
          * <p>
-         * This is a convenience method for calling {@link #callFactory}.
+         * This is a convenience method for calling {@link #serialFactory}.
          */
         public Builder client(SerialClient client) {
-            return callFactory(checkNotNull(client, "client == null"));
+            return serialFactory(checkNotNull(client, "client == null"));
         }
 
         /**
@@ -382,8 +391,8 @@ public class Retrofit {
          * <p>
          * Note: Calling {@link #client} automatically sets this value.
          */
-        public Builder callFactory(org.sheedon.serial.Call.Factory factory) {
-            this.callFactory = checkNotNull(factory, "factory == null");
+        public Builder serialFactory(org.sheedon.serial.SerialFactory factory) {
+            this.serialFactory = checkNotNull(factory, "factory == null");
             return this;
         }
 
@@ -469,10 +478,10 @@ public class Retrofit {
             if (baseEndBit == null)
                 baseEndBit = "";
 
-            org.sheedon.serial.Call.Factory callFactory = this.callFactory;
-            if (callFactory == null) {
+            org.sheedon.serial.SerialFactory serialFactory = this.serialFactory;
+            if (serialFactory == null) {
                 //
-                throw new IllegalStateException("callFactory is null.");
+                throw new IllegalStateException("serialFactory is null.");
             }
 
             Executor callbackExecutor = this.callbackExecutor;
@@ -493,7 +502,7 @@ public class Retrofit {
             converterFactories.add(new BuiltInConverters());
             converterFactories.addAll(this.converterFactories);
 
-            return new Retrofit(callFactory, baseStartBit, baseEndBit,
+            return new Retrofit(serialFactory, baseStartBit, baseEndBit,
                     unmodifiableList(converterFactories),
                     unmodifiableList(callAdapterFactories), callbackExecutor, validateEagerly);
         }

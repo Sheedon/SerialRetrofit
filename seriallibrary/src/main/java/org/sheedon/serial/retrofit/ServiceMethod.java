@@ -60,7 +60,7 @@ import java.lang.reflect.Type;
  */
 final class ServiceMethod<R, T> {
 
-    final org.sheedon.serial.Call.Factory callFactory;
+    final org.sheedon.serial.SerialFactory serialFactory;
     final CallAdapter<R, T> callAdapter;
 
     private final Converter<ResponseBody, R> responseConverter;
@@ -71,7 +71,7 @@ final class ServiceMethod<R, T> {
     private final SerialMessage serialMessage;
 
     ServiceMethod(Builder<R, T> builder) {
-        this.callFactory = builder.retrofit.callFactory();
+        this.serialFactory = builder.retrofit.serialFactory();
         this.callAdapter = builder.callAdapter;
         this.responseConverter = builder.responseConverter;
         this.parityBitConverter = builder.parityBitConverter;
@@ -104,6 +104,10 @@ final class ServiceMethod<R, T> {
 
     T adapt(Call<R> call) {
         return callAdapter.adapt(call);
+    }
+
+    T adapt(Observable<R> observable){
+        return callAdapter.adapt(observable);
     }
 
     /**
