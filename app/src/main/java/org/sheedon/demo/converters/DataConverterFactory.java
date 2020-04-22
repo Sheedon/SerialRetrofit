@@ -7,7 +7,8 @@ import org.sheedon.serial.DataCheckBean;
 import org.sheedon.serial.DataConverter;
 
 /**
- * @Description: java类作用描述
+ * 数据转化工厂
+ *
  * @Author: sheedon
  * @Email: sheedonsun@163.com
  * @Date: 2020/3/11 0:40

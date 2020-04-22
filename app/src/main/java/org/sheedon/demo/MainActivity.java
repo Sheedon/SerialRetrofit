@@ -7,13 +7,13 @@ import android.util.Log;
 import android.view.View;
 
 import org.sheedon.demo.converters.DataConverterFactory;
+import org.sheedon.demo.converters.SerialConverterFactory;
 import org.sheedon.serial.SerialClient;
 import org.sheedon.serial.retrofit.Call;
 import org.sheedon.serial.retrofit.Callback;
 import org.sheedon.serial.retrofit.Observable;
 import org.sheedon.serial.retrofit.Response;
 import org.sheedon.serial.retrofit.Retrofit;
-import org.sheedon.serial.retrofit.converters.SerialConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,26 +23,50 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SerialClient client = new SerialClient.Builder()
-                .path("/tty/s4")
-                .baudRate(9600)
-                .name("qrcode")
+                .path("/dev/ttyS1")
+                .baudRate(115200)
+                .name("bridge_rfid")
                 .addConverterFactory(DataConverterFactory.create())
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
                 .addConverterFactory(SerialConverterFactory.create())
-                .baseStartBit("7A")
-                .baseEndBit("")
+                .baseStartBit("BB")
+                .baseEndBit("7E")
                 .build();
 
         final RemoteService remoteService = retrofit.create(RemoteService.class);
+        Observable<RFIDModel> observable = remoteService.bindRFID();
+        observable.subscribe(new Callback.Observable<RFIDModel>() {
+            @Override
+            public void onResponse(Observable<RFIDModel> call, Response<RFIDModel> response) {
+                Log.v("SXD", "" + response.body());
+            }
+
+            @Override
+            public void onFailure(Observable<RFIDModel> call, Throwable t) {
+
+            }
+        });
+
+        remoteService.bindCommandBack().subscribe(new Callback.Observable<Void>() {
+            @Override
+            public void onResponse(Observable<Void> call, Response<Void> response) {
+                Log.v("SXD", "" + response.body());
+            }
+
+            @Override
+            public void onFailure(Observable<Void> call, Throwable t) {
+
+            }
+        });
 
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Call<BoxModel> managerList = remoteService.getManagerList("0800", "02", "03", "01");
-                managerList.publishNotCallback();
+                Call<Void> observable = remoteService.setSignalStrength();
+                observable.publishNotCallback();
 
             }
         });
@@ -50,18 +74,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Observable<BoxModel> managerList = remoteService.getManagerList1();
-                managerList.subscribe(new Callback.Observable<BoxModel>() {
-                    @Override
-                    public void onResponse(Observable<BoxModel> call, Response<BoxModel> response) {
-                        Log.v("SXD", "" + response.body());
-                    }
-
-                    @Override
-                    public void onFailure(Observable<BoxModel> call, Throwable t) {
-                        Log.v("SXD", "" + t);
-                    }
-                });
+                Call<Void> observable = remoteService.sendContinuousRead();
+                observable.publishNotCallback();
             }
         });
     }

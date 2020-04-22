@@ -36,4 +36,33 @@ interface RemoteService {
                                   @Path("address") String address,
                                   @Path("type") String type,
                                   @Path("message") String message);
+
+
+
+    /**
+     * 绑定rfid指令反馈
+     */
+    @BACKNAME("01FF")
+    Observable<Void> bindCommandBack();
+
+
+    /**
+     * 绑定rfid反馈
+     */
+    @BACKNAME("0222")
+    Observable<RFIDModel> bindRFID();
+
+    /**
+     * 发送设置信号强度指令指令
+     */
+    @MESSAGEBIT("00B6000207D0")
+    @PARITYBIT("8F")
+    Call<Void> setSignalStrength();
+
+    /**
+     * 发送连续读取指令指令
+     */
+    @MESSAGEBIT("0027000322FFFF")
+    @PARITYBIT("4A")
+    Call<Void> sendContinuousRead();
 }

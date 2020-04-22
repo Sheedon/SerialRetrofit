@@ -39,20 +39,17 @@ public class ResponseBodyRulesConverter<T> implements Converter<ResponseBody, T>
 
         Class cls = (Class) type;
 
-        Object object = Utils.newInstance(cls,parentObj);
+        Object object = Utils.newInstance(cls, parentObj);
 
         if (object == null)
             return null;
-
-        int position = 0;
 
         Field[] fields = cls.getDeclaredFields();
         for (Field field : fields) {
             if (field == null)
                 continue;
 
-            int cutLength = parseFieldParameter(message.substring(position), object, field);
-            position += cutLength;
+            parseFieldParameter(message, object, field);
         }
 
         return (T) object;
@@ -65,24 +62,26 @@ public class ResponseBodyRulesConverter<T> implements Converter<ResponseBody, T>
      * @param object 实例类
      * @param field  字段
      */
-    private static int parseFieldParameter(String message, Object object, Field field) {
+    private static void parseFieldParameter(String message, Object object, Field field) {
         Annotation[] annotations = field.getAnnotations();
 
         RULES rules = getFieldAnnotationRules(annotations);
 
         if (rules == null)
-            return 0;
+            return;
 
-        int length = rules.length();
+        int begin = rules.begin();
+        int end = rules.end();
         String value = rules.value();
 
-        if (length <= 0 || message.length() < length) {
+        int length = end - begin;
+
+        if (length <= 0 || message.length() < end) {
             assignObject(field, object, value);
-            return message.length();
+            return;
         }
 
-        assignObject(field, object, message.substring(0, length));
-        return length;
+        assignObject(field, object, message.substring(begin, end));
     }
 
     /**

@@ -10,14 +10,14 @@ import org.sheedon.serial.retrofit.serialport.RULES;
  */
 public class BoxModel {
 
-    @RULES(length = 2)
+    @RULES(end = 2)
     private String name;
-    @RULES(length = 2)
+    @RULES(begin = 2,end = 4)
     private String age;
-    @RULES(length = 6)
+    @RULES(begin = 4,end = 10)
     private String other;
 
-    @RULES(length = 2)
+    @RULES(begin = 10,end = 12)
     private Body body;
 
     public String getName() {
@@ -47,7 +47,7 @@ public class BoxModel {
     }
 
     private class Body{
-        @RULES(length = 2)
+        @RULES(end = 2)
         private String id;
 
         public String getId() {
