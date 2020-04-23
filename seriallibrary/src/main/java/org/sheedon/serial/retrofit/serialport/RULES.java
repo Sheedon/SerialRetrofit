@@ -25,5 +25,8 @@ public @interface RULES {
     int end() default 0;
 
     // 没有数据默认填充数据
-    String value() default "";
+    byte[] value() default 0;
+
+    // 是否需要解码
+    boolean decode() default false;
 }

@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import org.sheedon.serial.DataCheckBean;
 import org.sheedon.serial.DataConverter;
+import org.sheedon.serial.SafetyByteBuffer;
 
 /**
  * 数据转化工厂
@@ -29,13 +30,13 @@ public class DataConverterFactory extends org.sheedon.serial.DataConverterFactor
 
     @Nullable
     @Override
-    public DataConverter<String, String> callbackNameConverter(String data) {
+    public DataConverter<byte[], Long> callbackNameCodeConverter(byte[] data) {
         return ruleConverter == null ? ruleConverter = new CallbackRuleConverter() : ruleConverter;
     }
 
     @Nullable
     @Override
-    public DataConverter<StringBuffer, DataCheckBean> checkDataConverter() {
+    public DataConverter<SafetyByteBuffer, DataCheckBean> checkDataConverter() {
         return checkConverter == null ? checkConverter = new CheckDataConverter() : checkConverter;
     }
 }

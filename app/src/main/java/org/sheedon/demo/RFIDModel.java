@@ -1,6 +1,9 @@
 package org.sheedon.demo;
 
+import org.sheedon.serial.internal.CharsUtils;
 import org.sheedon.serial.retrofit.serialport.RULES;
+
+import java.util.Arrays;
 
 /**
  * RFIDModel
@@ -11,44 +14,48 @@ import org.sheedon.serial.retrofit.serialport.RULES;
  */
 public class RFIDModel {
 
-    @RULES(end = 2)
-    private String commandType;// 命令类型
+    @RULES(end = 1)
+    private byte[] commandType;// 命令类型
+    @RULES(begin = 1, end = 2)
+    private byte[] command;// 命令
     @RULES(begin = 2, end = 4)
-    private String command;// 命令
-    @RULES(begin = 4, end = 8)
-    private String length;// 长度
-    @RULES(begin = 8, end = 10)
-    private String signalStrength;// 信号强度
-    @RULES(begin = 10, end = 14)
-    private String pc;// PC值
-    @RULES(begin = 14, end = 38)
-    private String labelNumber;// 标签编号
+    private byte[] length;// 长度
+    @RULES(begin = 4, end = 5)
+    private byte[] signalStrength;// 信号强度
+    @RULES(begin = 5, end = 7)
+    private byte[] pc;// PC值
+    @RULES(begin = 7, end = 19)
+    private byte[] labelNumber;// 标签编号
 
-    public String getCommandType() {
+    public byte[] getCommandType() {
         return commandType;
     }
 
-    public String getCommand() {
+    public byte[] getCommand() {
         return command;
     }
 
-    public String getLength() {
+    public byte[] getLength() {
         return length;
     }
 
-    public String getSignalStrength() {
+    public byte[] getSignalStrength() {
         return signalStrength;
     }
 
-    public String getPc() {
+    public byte[] getPc() {
         return pc;
+    }
+
+    public byte[] getLabelNumber() {
+        return labelNumber;
     }
 
     /**
      * 获取标签编号
      */
     public String getDecodeLabelNumber() {
-        return labelNumber;
+        return CharsUtils.byte2HexStrNotEmpty(labelNumber);
     }
 
     /**
@@ -63,22 +70,18 @@ public class RFIDModel {
      * 16进制转10进制
      */
     private long convertNum() {
-        try {
-            return Integer.parseInt(signalStrength, 16);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
+        return signalStrength.length > 0 ? (signalStrength[0] & 0xff) : 0;
     }
 
     @Override
     public String toString() {
         return "RFIDModel{" +
-                "commandType='" + commandType + '\'' +
-                ", command='" + command + '\'' +
-                ", length='" + length + '\'' +
-                ", signalStrength='" + signalStrength + '\'' +
-                ", pc='" + pc + '\'' +
-                ", labelNumber='" + labelNumber + '\'' +
+                "commandType=" + CharsUtils.byte2HexStrNotEmpty(commandType) +
+                ", command=" + CharsUtils.byte2HexStrNotEmpty(command) +
+                ", length=" + CharsUtils.byte2HexStrNotEmpty(length) +
+                ", signalStrength=" + CharsUtils.byte2HexStrNotEmpty(signalStrength) +
+                ", pc=" + CharsUtils.byte2HexStrNotEmpty(pc) +
+                ", labelNumber=" + CharsUtils.byte2HexStrNotEmpty(labelNumber) +
                 '}';
     }
 }
