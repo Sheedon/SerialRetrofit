@@ -79,6 +79,11 @@ public class ResponseBodyRulesConverter<T> implements Converter<ResponseBody, T>
         byte[] value = rules.value();
         boolean decode = rules.decode();
 
+
+        if (end <= -100) {
+            end = message.length + 100 + end;
+        }
+
         int length = end - begin;
 
         if (length <= 0 || message.length < end) {
