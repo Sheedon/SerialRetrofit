@@ -61,4 +61,13 @@ public class SerialMessage {
     public void setEndBit(String endBit) {
         this.endBit = endBit;
     }
+
+    public SerialMessage clone(){
+        SerialMessage message = new SerialMessage();
+        message.startBit = startBit;
+        message.messageBit = messageBit;
+        message.parityBit = parityBit;
+        message.endBit = endBit;
+        return message;
+    }
 }

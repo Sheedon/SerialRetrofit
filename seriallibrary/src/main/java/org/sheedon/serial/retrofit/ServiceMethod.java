@@ -83,7 +83,7 @@ final class ServiceMethod<R, T> {
 
     Request toRequest(@Nullable Object... args) throws IOException {
 
-        RequestBuilder requestBuilder = new RequestBuilder(this,serialMessage,
+        RequestBuilder requestBuilder = new RequestBuilder(this, serialMessage.clone(),
                 bindCallback);
 
         @SuppressWarnings("unchecked") // It is an error to invoke a method with the wrong arg types.
@@ -106,7 +106,7 @@ final class ServiceMethod<R, T> {
         return callAdapter.adapt(call);
     }
 
-    T adapt(Observable<R> observable){
+    T adapt(Observable<R> observable) {
         return callAdapter.adapt(observable);
     }
 
@@ -124,7 +124,7 @@ final class ServiceMethod<R, T> {
         return parityBitConverter.convert(serialMessage);
     }
 
-    String toRequestBody(SerialMessage serialMessage){
+    String toRequestBody(SerialMessage serialMessage) {
         return requestBodyConverter.convert(serialMessage);
     }
 
@@ -341,7 +341,7 @@ final class ServiceMethod<R, T> {
 
                 Converter<?, String> converter = retrofit.stringConverter(type, annotations);
                 return new ParameterHandler.Path<>(name, converter, path.encoded());
-            }else if(annotation instanceof BackPath){
+            } else if (annotation instanceof BackPath) {
                 BackPath path = (BackPath) annotation;
                 String name = path.value();
                 Converter<?, String> converter = retrofit.stringConverter(type, annotations);
