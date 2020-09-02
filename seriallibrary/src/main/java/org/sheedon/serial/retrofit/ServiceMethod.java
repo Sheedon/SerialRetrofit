@@ -84,7 +84,7 @@ final class ServiceMethod<R, T> {
     Request toRequest(@Nullable Object... args) throws IOException {
 
         RequestBuilder requestBuilder = new RequestBuilder(this, serialMessage.clone(),
-                bindCallback);
+                bindCallback.clone());
 
         @SuppressWarnings("unchecked") // It is an error to invoke a method with the wrong arg types.
                 ParameterHandler<Object>[] handlers = (ParameterHandler<Object>[]) parameterHandlers;
@@ -345,7 +345,7 @@ final class ServiceMethod<R, T> {
                 BackPath path = (BackPath) annotation;
                 String name = path.value();
                 Converter<?, String> converter = retrofit.stringConverter(type, annotations);
-                return new ParameterHandler.Path<>(name, converter, path.encoded());
+                return new ParameterHandler.BackPath<>(name, converter, path.encoded());
             }
             return null; // Not a Retrofit annotation.
         }

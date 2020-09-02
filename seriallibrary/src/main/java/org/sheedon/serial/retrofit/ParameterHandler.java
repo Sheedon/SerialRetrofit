@@ -91,7 +91,7 @@ abstract class ParameterHandler<T> {
                 throw new IllegalArgumentException(
                         "Path parameter \"" + name + "\" value must not be null.");
             }
-            builder.addPathParam(name, valueConverter.convert(value), encoded);
+            builder.addBackPathParam(name, valueConverter.convert(value), encoded);
         }
     }
 }

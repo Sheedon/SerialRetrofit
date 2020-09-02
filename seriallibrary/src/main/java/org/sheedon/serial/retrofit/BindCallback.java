@@ -28,4 +28,16 @@ class BindCallback {
     void setBackName(String backName) {
         this.backName = backName;
     }
+
+
+    public BindCallback clone() {
+        try {
+            return (BindCallback) super.clone();
+        } catch (CloneNotSupportedException e) {
+            BindCallback bindCallback = new BindCallback();
+            bindCallback.delayMilliSecond = delayMilliSecond;
+            bindCallback.backName = backName;
+            return bindCallback;
+        }
+    }
 }

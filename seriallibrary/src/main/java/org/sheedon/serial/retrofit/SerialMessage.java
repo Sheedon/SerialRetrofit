@@ -62,12 +62,18 @@ public class SerialMessage {
         this.endBit = endBit;
     }
 
-    public SerialMessage clone(){
-        SerialMessage message = new SerialMessage();
-        message.startBit = startBit;
-        message.messageBit = messageBit;
-        message.parityBit = parityBit;
-        message.endBit = endBit;
-        return message;
+
+    @Override
+    public SerialMessage clone() {
+        try {
+            return (SerialMessage) super.clone();
+        } catch (CloneNotSupportedException e) {
+            SerialMessage message = new SerialMessage();
+            message.startBit = startBit;
+            message.messageBit = messageBit;
+            message.parityBit = parityBit;
+            message.endBit = endBit;
+            return message;
+        }
     }
 }
